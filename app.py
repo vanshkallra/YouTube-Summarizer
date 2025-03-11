@@ -10,21 +10,67 @@ from openai import OpenAI
 
 from youtube_transcript_api import YouTubeTranscriptApi
 
+import requests
+import random
+from itertools import cycle
 
+with open("valid_proxies.txt", "r") as f:
+    proxies= f.read().split("\n")
 
-# GETTING THE TRANSCRIPT
+# Rotate through proxies using itertools
+proxy_pool = cycle(proxies)
+
 def get_transcript(url_link):
     try:
-        video_id=url_link.split("watch?v=")[-1]
-        transcript=YouTubeTranscriptApi.get_transcript(video_id)
-        transcript_joined=""
-        for line in transcript:
-            transcript_joined += " " + line['text']
-            
-        return transcript_joined
-    
+        video_id = url_link.split("watch?v=")[-1]
+        
+        # Get next proxy from pool
+        current_proxy = next(proxy_pool)
+        proxies = {
+            "http": f"http://{current_proxy}",
+            "https": f"http://{current_proxy}"
+        }
+        
+        # Add retry logic with proxy rotation
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                transcript = YouTubeTranscriptApi.get_transcript(
+                    video_id, 
+                    proxies=proxies
+                )
+                transcript_joined = " ".join([line['text'] for line in transcript])
+                return transcript_joined
+                
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    # Rotate proxy on failure
+                    current_proxy = next(proxy_pool)
+                    proxies = {
+                        "http": f"http://{current_proxy}",
+                        "https": f"http://{current_proxy}"
+                    }
+                    continue
+                raise e
+                
     except Exception as e:
-        raise e
+        st.error(f"Failed to get transcript: {str(e)}")
+        return None
+
+
+# # GETTING THE TRANSCRIPT
+# def get_transcript(url_link):
+#     try:
+#         video_id=url_link.split("watch?v=")[-1]
+#         transcript=YouTubeTranscriptApi.get_transcript(video_id)
+#         transcript_joined=""
+#         for line in transcript:
+#             transcript_joined += " " + line['text']
+            
+#         return transcript_joined
+    
+#     except Exception as e:
+#         raise e
     
 
 
