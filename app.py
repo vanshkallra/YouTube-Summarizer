@@ -140,7 +140,7 @@ if st.button("Get Summary"):
         st.write(summary)
         
 if st.button("Get Detailed Notes"):
-    transcript=get_transcript(url_link)
+    transcript=get_transcript_with_retry(url_link)
     
     if transcript:
         prompt = f'"Generate detailed notes as key points from this video transcript , make sure you understand its from a youtube video: \ntext = {transcript}"'
