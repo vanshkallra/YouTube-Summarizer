@@ -14,64 +14,59 @@ import requests
 import random
 from itertools import cycle
 
-with open("valid_proxies.txt", "r") as f:
+with open("valid_proxies2.txt", "r") as f:
     proxies= f.read().split("\n")
+    
+    
+counter = 0
 
-# Rotate through proxies using itertools
-proxy_pool = cycle(proxies)
-
-# def get_transcript(url_link):
-#     try:
-#         video_id = url_link.split("watch?v=")[-1]
-        
-#         # Get next proxy from pool
-#         current_proxy = next(proxy_pool)
-#         proxies = {
-#             "http": f"http://{current_proxy}",
-#             "https": f"https://{current_proxy}"
-#         }
-        
-#         # Add retry logic with proxy rotation
-#         max_retries = 3
-#         for attempt in range(max_retries):
-#             try:
-#                 transcript = YouTubeTranscriptApi.get_transcript(
-#                     video_id, 
-#                     proxies=proxies
-#                 )
-#                 transcript_joined = " ".join([line['text'] for line in transcript])
-#                 return transcript_joined
-                
-#             except Exception as e:
-#                 if attempt < max_retries - 1:
-#                     # Rotate proxy on failure
-#                     current_proxy = next(proxy_pool)
-#                     proxies = {
-#                         "http": f"http://{current_proxy}",
-#                         "https": f"http://{current_proxy}"
-#                     }
-#                     continue
-#                 raise e
-                
-#     except Exception as e:
-#         st.error(f"Failed to get transcript: {str(e)}")
-#         return None
-
-
-# GETTING THE TRANSCRIPT
 def get_transcript(url_link):
+    global counter
+    
     try:
-        video_id=url_link.split("watch?v=")[-1]
-        transcript=YouTubeTranscriptApi.get_transcript(video_id)
-        transcript_joined=""
+        video_id = url_link.split("watch?v=")[-1]
+        
+        # Print which proxy we're using
+        print(f"Using the proxy: {proxies[counter]}")
+        
+        # Set up proxy configuration
+        proxy_dict = {
+            "http": proxies[counter],
+            "https": proxies[counter]
+        }
+        
+        # Get transcript using the current proxy
+        transcript = YouTubeTranscriptApi.get_transcript(
+            video_id,
+            proxies=proxy_dict
+        )
+        
+        # Join the transcript text
+        transcript_joined = ""
         for line in transcript:
             transcript_joined += " " + line['text']
             
         return transcript_joined
     
     except Exception as e:
+        print("Failed")
         raise e
     
+    finally:
+        # Increment counter and wrap around if needed
+        counter += 1
+        if counter >= len(proxies):
+            counter = 0
+            
+def get_transcript_with_retry(url_link, max_retries=3):
+    for _ in range(max_retries):
+        try:
+            return get_transcript(url_link)
+        except Exception as e:
+            print(f"Retry due to: {e}")
+    
+    raise Exception(f"Failed after {max_retries} attempts with different proxies")
+
 
 
 # Check for API key in secrets or environment variables
@@ -133,7 +128,9 @@ if url_link:
     st.image(f"http://img.youtube.com/vi/{video_id}/0.jpg", use_container_width=True)
     
 if st.button("Get Summary"):
-    transcript=get_transcript(url_link)
+    # transcript=get_transcript(url_link)
+    transcript=get_transcript_with_retry(url_link)
+    
     
     if transcript:
         prompt = f'"Summarize this video transcript in less than 250 words , make sure you understand its from a youtube video: \ntext = {transcript}"'
