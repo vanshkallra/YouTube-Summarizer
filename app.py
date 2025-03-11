@@ -98,7 +98,7 @@ def generate_summary(transcript, prompt):
     ],
     model="deepseek/deepseek-chat:free",
     temperature=1, # Temperature controls randomness in the response
-    max_tokens=256, # Maximum number of tokens in the response
+    # max_tokens=256, # Maximum number of tokens in the response
     top_p=1, # Top-p (nucleus) sampling parameter, higher values make output more focused
     frequency_penalty=0, # Frequency penalty discourages the model from repeating words or phrases
     presence_penalty=0 # Presence penaty discourages the model from adding verbose or unnecessary words
