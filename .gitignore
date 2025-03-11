@@ -3,4 +3,3 @@ venv/
 .DS_Store
 .streamlit/secrets.toml
 proxy_list.txt
-valid_proxies.txt
