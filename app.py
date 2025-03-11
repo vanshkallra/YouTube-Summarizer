@@ -136,7 +136,7 @@ if st.button("Get Summary"):
     transcript=get_transcript(url_link)
     
     if transcript:
-        prompt = f'"Summarize this video transcript , make sure you understand its from a youtube video: \ntext = {transcript}"'
+        prompt = f'"Summarize this video transcript in less than 250 words , make sure you understand its from a youtube video: \ntext = {transcript}"'
         summary=generate_summary(transcript,prompt)
         
         st.markdown("Summary: ")
