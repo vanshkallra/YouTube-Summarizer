@@ -29,7 +29,7 @@ def get_transcript(url_link):
 
 
 # GET THE OPENAI API KEY
-api_key = os.environ.get("OPENAI_API_KEY")
+api_key = st.secrets["OPENAI_API_KEY"]
 if not api_key:
     raise ValueError("OPENAI_API_KEY environment variable not set.")
 
