@@ -28,10 +28,11 @@ def get_transcript(url_link):
     
 
 
-# GET THE OPENAI API KEY
-api_key = st.secrets["OPENAI_API_KEY"]
+# Check for API key in secrets or environment variables
+api_key = st.secrets.get("OPENAI_API_KEY") or os.environ.get("OPENAI_API_KEY")
+
 if not api_key:
-    raise ValueError("OPENAI_API_KEY environment variable not set.")
+    raise ValueError("OPENAI_API_KEY not found in secrets or environment variables.")
 
 
 client = OpenAI(
