@@ -23,7 +23,7 @@ with open("valid_proxies2.txt", "r") as f:
 counter = 0
 
 # Set a timeout to avoid hanging on slow proxies
-TIMEOUT = 5  # seconds
+TIMEOUT = 8  # seconds
 
 def get_transcript(url_link, max_retries=3):
     video_id = url_link.split("watch?v=")[-1]
