@@ -294,6 +294,7 @@ if st.button("Get Detailed Notes"):
     transcript=get_transcript(url_link)
     
     if transcript:
+        st.success("Transcript obtained successfully!")
         prompt = f'"Generate detailed notes as key points from this video transcript , make sure you understand its from a youtube video: \ntext = {transcript}"'
         notes=generate_detailed_notes(transcript,prompt)
         
