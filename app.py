@@ -61,7 +61,7 @@ with open("valid_proxies2.txt", "r") as f:
 #     raise Exception(f"Failed after {max_retries} attempts with different proxies")
     
     
-# counter = 0
+
 
 # # Set a timeout to avoid hanging on slow proxies
 # TIMEOUT = 10  # seconds
@@ -105,6 +105,8 @@ with open("valid_proxies2.txt", "r") as f:
 #     # If we've exhausted all retries
 #     raise Exception(f"Failed to get transcript after {max_retries} attempts")
 
+counter = 0
+
 def get_transcript(url_link):
     global counter
     
@@ -143,7 +145,7 @@ def get_transcript(url_link):
         if counter >= len(proxies):
             counter = 0
             
-def get_transcript_retry(url_link, max_retries=3):
+def get_transcript_retry(url_link, max_retries=4):
     for _ in range(max_retries):
         try:
             return get_transcript(url_link)
