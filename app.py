@@ -34,16 +34,16 @@ def get_transcript(url_link, max_retries=5):
         st.write(f"Attempt {attempt+1}/{max_retries} using proxy: {current_proxy}")
         
         try:
-            # Create a session with timeout
-            session = requests.Session()
-            session.proxies = proxy_dict
-            session.timeout = 10  # 10 seconds timeout
+            # # Create a session with timeout
+            # session = requests.Session()
+            # session.proxies = proxy_dict
+            # session.timeout = 10  # 10 seconds timeout
             
             # Get transcript through the session
             transcript = YouTubeTranscriptApi.get_transcript(
                 video_id,
                 proxies=proxy_dict,
-                session=session
+                # session=session
             )
             
             return " ".join([line['text'] for line in transcript])
