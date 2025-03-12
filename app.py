@@ -5,12 +5,13 @@ load_dotenv()  #load the env variables
 import time
 import random
 
+
 import os
 
 from openai import OpenAI
 # from google.generativeai as genai
 
-from youtube_transcript_api import YouTubeTranscriptApi
+from youtube_transcript_api import YouTubeTranscriptApi, CouldNotRetrieveTranscript
 
 import requests
 import random
@@ -19,50 +20,90 @@ from itertools import cycle
 with open("valid_proxies2.txt", "r") as f:
     proxies= f.read().split("\n")
     
-    
-counter = 0
-
-# Set a timeout to avoid hanging on slow proxies
-TIMEOUT = 10  # seconds
 
 def get_transcript(url_link, max_retries=5):
     video_id = url_link.split("watch?v=")[-1]
     
-    # Try with different proxies
     for attempt in range(max_retries):
-        # Choose a random proxy instead of sequential
-        proxy_index = random.randint(0, len(proxies)-1)
-        current_proxy = proxies[proxy_index]
+        current_proxy = PROXIES[attempt % len(PROXIES)]  # Sequential proxy rotation
+        proxy_dict = {
+            "http": f"http://{current_proxy}",
+            "https": f"http://{current_proxy}"
+        }
         
-        print(f"Attempt {attempt+1}/{max_retries} using proxy: {current_proxy}")
+        st.write(f"Attempt {attempt+1}/{max_retries} using proxy: {current_proxy}")
         
         try:
-            # Configure proxy
-            proxy_dict = {
-                "http": current_proxy,
-                "https": current_proxy
-            }
+            # Create a session with timeout
+            session = requests.Session()
+            session.proxies = proxy_dict
+            session.timeout = 10  # 10 seconds timeout
             
-            # Add timeout to prevent hanging
+            # Get transcript through the session
             transcript = YouTubeTranscriptApi.get_transcript(
                 video_id,
                 proxies=proxy_dict,
-                timeout=TIMEOUT
+                session=session
             )
             
-            # Successfully got transcript
-            transcript_joined = ""
-            for line in transcript:
-                transcript_joined += " " + line['text']
-                
-            return transcript_joined
+            return " ".join([line['text'] for line in transcript])
+            
+        except CouldNotRetrieveTranscript as e:
+            st.error(f"Transcript error: {str(e)}")
+            if "IP blocked" in str(e):
+                continue  # Try next proxy
+            raise  # Re-raise for non-IP errors
             
         except Exception as e:
-            print(f"Failed: {str(e)[:100]}...")
-            time.sleep(2)  # Add delay between retries
+            st.error(f"Connection error: {str(e)}")
+            time.sleep(2)  # Add delay between attempts
     
-    # If we've exhausted all retries
-    raise Exception(f"Failed to get transcript after {max_retries} attempts")
+    raise Exception(f"Failed after {max_retries} attempts with different proxies")
+    
+    
+# counter = 0
+
+# # Set a timeout to avoid hanging on slow proxies
+# TIMEOUT = 10  # seconds
+
+# def get_transcript(url_link, max_retries=5):
+#     video_id = url_link.split("watch?v=")[-1]
+    
+#     # Try with different proxies
+#     for attempt in range(max_retries):
+#         # Choose a random proxy instead of sequential
+#         proxy_index = random.randint(0, len(proxies)-1)
+#         current_proxy = proxies[proxy_index]
+        
+#         print(f"Attempt {attempt+1}/{max_retries} using proxy: {current_proxy}")
+        
+#         try:
+#             # Configure proxy
+#             proxy_dict = {
+#                 "http": current_proxy,
+#                 "https": current_proxy
+#             }
+            
+#             # Add timeout to prevent hanging
+#             transcript = YouTubeTranscriptApi.get_transcript(
+#                 video_id,
+#                 proxies=proxy_dict,
+#                 timeout=TIMEOUT
+#             )
+            
+#             # Successfully got transcript
+#             transcript_joined = ""
+#             for line in transcript:
+#                 transcript_joined += " " + line['text']
+                
+#             return transcript_joined
+            
+#         except Exception as e:
+#             print(f"Failed: {str(e)[:100]}...")
+#             time.sleep(2)  # Add delay between retries
+    
+#     # If we've exhausted all retries
+#     raise Exception(f"Failed to get transcript after {max_retries} attempts")
 
 # def get_transcript(url_link):
 #     global counter
