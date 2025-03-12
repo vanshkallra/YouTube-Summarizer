@@ -23,9 +23,9 @@ with open("valid_proxies2.txt", "r") as f:
 counter = 0
 
 # Set a timeout to avoid hanging on slow proxies
-TIMEOUT = 8  # seconds
+TIMEOUT = 10  # seconds
 
-def get_transcript(url_link, max_retries=3):
+def get_transcript(url_link, max_retries=5):
     video_id = url_link.split("watch?v=")[-1]
     
     # Try with different proxies
@@ -59,7 +59,7 @@ def get_transcript(url_link, max_retries=3):
             
         except Exception as e:
             print(f"Failed: {str(e)[:100]}...")
-            time.sleep(1)  # Add delay between retries
+            time.sleep(2)  # Add delay between retries
     
     # If we've exhausted all retries
     raise Exception(f"Failed to get transcript after {max_retries} attempts")
