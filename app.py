@@ -25,7 +25,7 @@ def get_transcript(url_link, max_retries=5):
     video_id = url_link.split("watch?v=")[-1]
     
     for attempt in range(max_retries):
-        current_proxy = PROXIES[attempt % len(PROXIES)]  # Sequential proxy rotation
+        current_proxy = proxies[attempt % len(proxies)]  # Sequential proxy rotation
         proxy_dict = {
             "http": f"http://{current_proxy}",
             "https": f"http://{current_proxy}"
