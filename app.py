@@ -267,6 +267,7 @@ if st.button("Get Summary"):
     
     
     if transcript:
+        st.success("Transcript obtained successfully!")
         prompt = f'"Summarize this video transcript in less than 250 words , make sure you understand its from a youtube video: \ntext = {transcript}"'
         summary=generate_summary(transcript,prompt)
         
