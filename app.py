@@ -145,7 +145,7 @@ def get_transcript(url_link):
         if counter >= len(proxies):
             counter = 0
             
-def get_transcript_retry(url_link, max_retries=4):
+def get_transcript_retry(url_link, max_retries=3):
     for _ in range(max_retries):
         try:
             return get_transcript(url_link)
