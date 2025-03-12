@@ -22,17 +22,18 @@ with open("valid_proxies2.txt", "r") as f:
     
     
 # ORIG CODE
-def get_transcript(video_id, max_retries=3, delay=1):
-    for attempt in range(max_retries):
-        try:
-            transcript = YouTubeTranscriptApi.get_transcript(video_id)
-            return transcript
-        except Exception as e:
-            print(f"Attempt {attempt+1} failed: {e}")
-            if attempt < max_retries - 1:
-                time.sleep(delay * (2**attempt))  # Exponential backoff
-            else:
-                raise  # Re-raise the exception if retries fail
+def get_transcript(url_link):
+    try:
+        video_id=url_link.split("watch?v=")[-1]
+        transcript=YouTubeTranscriptApi.get_transcript(video_id)
+        transcript_joined=""
+        for line in transcript:
+            transcript_joined += " " + line['text']
+            
+        return transcript_joined
+    
+    except Exception as e:
+        raise e
 
     
 
