@@ -21,44 +21,44 @@ with open("valid_proxies2.txt", "r") as f:
     proxies= f.read().split("\n")
     
 
-def get_transcript(url_link, max_retries=5):
-    video_id = url_link.split("watch?v=")[-1]
+# def get_transcript(url_link, max_retries=5):
+#     video_id = url_link.split("watch?v=")[-1]
     
-    for attempt in range(max_retries):
-        current_proxy = proxies[attempt % len(proxies)]  # Sequential proxy rotation
-        proxy_dict = {
-            "http": f"http://{current_proxy}",
-            "https": f"http://{current_proxy}"
-        }
+#     for attempt in range(max_retries):
+#         current_proxy = proxies[attempt % len(proxies)]  # Sequential proxy rotation
+#         proxy_dict = {
+#             "http": f"http://{current_proxy}",
+#             "https": f"http://{current_proxy}"
+#         }
         
-        st.write(f"Attempt {attempt+1}/{max_retries} using proxy: {current_proxy}")
+#         st.write(f"Attempt {attempt+1}/{max_retries} using proxy: {current_proxy}")
         
-        try:
-            # # Create a session with timeout
-            # session = requests.Session()
-            # session.proxies = proxy_dict
-            # session.timeout = 10  # 10 seconds timeout
+#         try:
+#             # # Create a session with timeout
+#             # session = requests.Session()
+#             # session.proxies = proxy_dict
+#             # session.timeout = 10  # 10 seconds timeout
             
-            # Get transcript through the session
-            transcript = YouTubeTranscriptApi.get_transcript(
-                video_id,
-                proxies=proxy_dict,
-                # session=session
-            )
+#             # Get transcript through the session
+#             transcript = YouTubeTranscriptApi.get_transcript(
+#                 video_id,
+#                 proxies=proxy_dict,
+#                 # session=session
+#             )
             
-            return " ".join([line['text'] for line in transcript])
+#             return " ".join([line['text'] for line in transcript])
             
-        except CouldNotRetrieveTranscript as e:
-            st.error(f"Transcript error: {str(e)}")
-            if "IP blocked" in str(e):
-                continue  # Try next proxy
-            raise  # Re-raise for non-IP errors
+#         except CouldNotRetrieveTranscript as e:
+#             st.error(f"Transcript error: {str(e)}")
+#             if "IP blocked" in str(e):
+#                 continue  # Try next proxy
+#             raise  # Re-raise for non-IP errors
             
-        except Exception as e:
-            st.error(f"Connection error: {str(e)}")
-            time.sleep(2)  # Add delay between attempts
+#         except Exception as e:
+#             st.error(f"Connection error: {str(e)}")
+#             time.sleep(2)  # Add delay between attempts
     
-    raise Exception(f"Failed after {max_retries} attempts with different proxies")
+#     raise Exception(f"Failed after {max_retries} attempts with different proxies")
     
     
 # counter = 0
@@ -105,52 +105,52 @@ def get_transcript(url_link, max_retries=5):
 #     # If we've exhausted all retries
 #     raise Exception(f"Failed to get transcript after {max_retries} attempts")
 
-# def get_transcript(url_link):
-#     global counter
+def get_transcript(url_link):
+    global counter
     
-#     try:
-#         video_id = url_link.split("watch?v=")[-1]
+    try:
+        video_id = url_link.split("watch?v=")[-1]
         
-#         # Print which proxy we're using
-#         print(f"Using the proxy: {proxies[counter]}")
+        # Print which proxy we're using
+        print(f"Using the proxy: {proxies[counter]}")
         
-#         # Set up proxy configuration
-#         proxy_dict = {
-#             "http": proxies[counter],
-#             "https": proxies[counter]
-#         }
+        # Set up proxy configuration
+        proxy_dict = {
+            "http": proxies[counter],
+            "https": proxies[counter]
+        }
         
-#         # Get transcript using the current proxy
-#         transcript = YouTubeTranscriptApi.get_transcript(
-#             video_id,
-#             proxies=proxy_dict
-#         )
+        # Get transcript using the current proxy
+        transcript = YouTubeTranscriptApi.get_transcript(
+            video_id,
+            proxies=proxy_dict
+        )
         
-#         # Join the transcript text
-#         transcript_joined = ""
-#         for line in transcript:
-#             transcript_joined += " " + line['text']
+        # Join the transcript text
+        transcript_joined = ""
+        for line in transcript:
+            transcript_joined += " " + line['text']
             
-#         return transcript_joined
+        return transcript_joined
     
-#     except Exception as e:
-#         print("Failed")
-#         raise e
+    except Exception as e:
+        print("Failed")
+        raise e
     
-#     finally:
-#         # Increment counter and wrap around if needed
-#         counter += 1
-#         if counter >= len(proxies):
-#             counter = 0
+    finally:
+        # Increment counter and wrap around if needed
+        counter += 1
+        if counter >= len(proxies):
+            counter = 0
             
-# def get_transcript_with_retry(url_link, max_retries=3):
-#     for _ in range(max_retries):
-#         try:
-#             return get_transcript(url_link)
-#         except Exception as e:
-#             print(f"Retry due to: {e}")
+def get_transcript_retry(url_link, max_retries=3):
+    for _ in range(max_retries):
+        try:
+            return get_transcript(url_link)
+        except Exception as e:
+            print(f"Retry due to: {e}")
     
-#     raise Exception(f"Failed after {max_retries} attempts with different proxies")
+    raise Exception(f"Failed after {max_retries} attempts with different proxies")
 
 
 
@@ -214,7 +214,7 @@ if url_link:
     
 if st.button("Get Summary"):
     # transcript=get_transcript(url_link)
-    transcript=get_transcript(url_link)
+    transcript=get_transcript_retry(url_link)
     
     
     if transcript:
@@ -225,7 +225,7 @@ if st.button("Get Summary"):
         st.write(summary)
         
 if st.button("Get Detailed Notes"):
-    transcript=get_transcript(url_link)
+    transcript=get_transcript_retry(url_link)
     
     if transcript:
         prompt = f'"Generate detailed notes as key points from this video transcript , make sure you understand its from a youtube video: \ntext = {transcript}"'
