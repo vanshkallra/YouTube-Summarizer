@@ -21,6 +21,8 @@ with open("valid_proxies2.txt", "r") as f:
     proxies= f.read().split("\n")
     
 
+# CODE 1
+
 # def get_transcript(url_link, max_retries=5):
 #     video_id = url_link.split("watch?v=")[-1]
     
@@ -62,6 +64,9 @@ with open("valid_proxies2.txt", "r") as f:
     
     
 
+
+
+# CODE 2
 
 # # Set a timeout to avoid hanging on slow proxies
 # TIMEOUT = 10  # seconds
@@ -105,54 +110,96 @@ with open("valid_proxies2.txt", "r") as f:
 #     # If we've exhausted all retries
 #     raise Exception(f"Failed to get transcript after {max_retries} attempts")
 
-counter = 0
 
-def get_transcript(url_link):
-    global counter
+
+
+
+# CODE 3
+
+# counter = 0
+
+# def get_transcript(url_link):
+#     global counter
     
-    try:
-        video_id = url_link.split("watch?v=")[-1]
+#     try:
+#         video_id = url_link.split("watch?v=")[-1]
         
-        # Print which proxy we're using
-        print(f"Using the proxy: {proxies[counter]}")
+#         # Print which proxy we're using
+#         print(f"Using the proxy: {proxies[counter]}")
         
-        # Set up proxy configuration
-        proxy_dict = {
-            "http": proxies[counter],
-            "https": proxies[counter]
-        }
+#         # Set up proxy configuration
+#         proxy_dict = {
+#             "http": proxies[counter],
+#             "https": proxies[counter]
+#         }
         
-        # Get transcript using the current proxy
-        transcript = YouTubeTranscriptApi.get_transcript(
-            video_id,
-            proxies=proxy_dict
-        )
+#         # Get transcript using the current proxy
+#         transcript = YouTubeTranscriptApi.get_transcript(
+#             video_id,
+#             proxies=proxy_dict
+#         )
         
-        # Join the transcript text
-        transcript_joined = ""
-        for line in transcript:
-            transcript_joined += " " + line['text']
+#         # Join the transcript text
+#         transcript_joined = ""
+#         for line in transcript:
+#             transcript_joined += " " + line['text']
             
-        return transcript_joined
+#         return transcript_joined
     
-    except Exception as e:
-        print("Failed")
-        raise e
+#     except Exception as e:
+#         print("Failed")
+#         raise e
     
-    finally:
-        # Increment counter and wrap around if needed
-        counter += 1
-        if counter >= len(proxies):
-            counter = 0
+#     finally:
+#         # Increment counter and wrap around if needed
+#         counter += 1
+#         if counter >= len(proxies):
+#             counter = 0
             
-def get_transcript_retry(url_link, max_retries=3):
-    for _ in range(max_retries):
+# def get_transcript_retry(url_link, max_retries=3):
+#     for _ in range(max_retries):
+#         try:
+#             return get_transcript(url_link)
+#         except Exception as e:
+#             print(f"Retry due to: {e}")
+    
+#     raise Exception(f"Failed after {max_retries} attempts with different proxies")
+
+
+
+
+# CODE 4
+
+# Initialize session state for proxy tracking
+if 'proxy_index' not in st.session_state:
+    st.session_state.proxy_index = 0
+
+def get_transcript(url_link, max_retries=3):
+    video_id = url_link.split("watch?v=")[-1]
+    
+    for i in range(max_retries):
+        # Calculate current proxy index with wrap-around
+        current_index = (st.session_state.proxy_index + i) % len(proxies)
+        proxy = proxies[current_index]
+        
+        st.write(f"Attempt {i+1}/{max_retries} using proxy: {proxy}")
+        
         try:
-            return get_transcript(url_link)
+            transcript = YouTubeTranscriptApi.get_transcript(
+                video_id,
+                proxies={"http": proxy, "https": proxy}
+            )
+            # Update index for next request
+            st.session_state.proxy_index = (current_index + 1) % len(proxies)
+            return " ".join([line['text'] for line in transcript])
+            
         except Exception as e:
-            print(f"Retry due to: {e}")
+            st.error(f"Attempt {i+1} failed: {str(e)}")
+            continue
     
-    raise Exception(f"Failed after {max_retries} attempts with different proxies")
+    # Update index after all attempts
+    st.session_state.proxy_index = (current_index + 1) % len(proxies)
+    raise Exception(f"Failed after {max_retries} attempts")
 
 
 
@@ -216,7 +263,7 @@ if url_link:
     
 if st.button("Get Summary"):
     # transcript=get_transcript(url_link)
-    transcript=get_transcript_retry(url_link)
+    transcript=get_transcript(url_link)
     
     
     if transcript:
@@ -227,7 +274,7 @@ if st.button("Get Summary"):
         st.write(summary)
         
 if st.button("Get Detailed Notes"):
-    transcript=get_transcript_retry(url_link)
+    transcript=get_transcript(url_link)
     
     if transcript:
         prompt = f'"Generate detailed notes as key points from this video transcript , make sure you understand its from a youtube video: \ntext = {transcript}"'
